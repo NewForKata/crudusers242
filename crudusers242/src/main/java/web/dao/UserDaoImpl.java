@@ -10,7 +10,6 @@ import javax.persistence.*;
 import java.util.List;
 
 @Component
-@Transactional
 public class UserDaoImpl implements UserDao {
     public UserDaoImpl() {
     }
@@ -24,14 +23,14 @@ public class UserDaoImpl implements UserDao {
         return resultList;
     }
 
-    @Transactional
+    
     @Override
     public void save(User user) {
         User managed = entityManager.merge(user);
         entityManager.persist(managed);
     }
 
-    @Transactional
+    
     @Override
     public void delete(User user) {
         User managed = entityManager.merge(user);

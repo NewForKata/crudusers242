@@ -24,12 +24,26 @@
         <p><label for="email">email</label></p>
         <p><input type="text" th:field="*{email}" id="email" value="email"></p>
 
-        <ul>
-            <li th:each="role : ${rolelist}">
-                <input type="checkbox" name="roles" th:field="*{roles}" th:value="${role}"
-                       th:text="${role.getName()}" />
-            </li>
-        </ul>
+<!--        <ul>-->
+<!--            <li th:each="role : ${rolelist}">-->
+<!--                <input type="checkbox" name="roles" th:field="*{roles}" th:value="${role}"-->
+<!--                       th:text="${role.getName()}" />-->
+<!--            </li>-->
+<!--        </ul>-->
+
+        <tr>
+            <th>Role:</th>
+            <td>
+                <label>
+                    <select name="role" multiple>
+                        <th:block th:each="role : ${rolelist}">
+                            <option th:value="${role}" th:text="${role}"></option>
+                        </th:block>
+                    </select>
+                </label>
+            </td>
+        </tr>
+
         <p>
             <input type="submit" value="edit">
         </p>

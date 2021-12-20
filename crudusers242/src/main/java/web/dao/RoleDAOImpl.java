@@ -8,24 +8,24 @@ import web.model.User;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 @Component
-@Transactional
 public class RoleDAOImpl implements RoleDAO{
     @PersistenceContext
     private EntityManager entityManager;
 
     public RoleDAOImpl() {
     }
-
-    @Transactional
+    
     @Override
     public void save(Role role) {
         Role managed = entityManager.merge(role);
         entityManager.persist(managed);
     }
-
-    @Transactional
+    
     @Override
     public void delete(Role role) {
         Role managed = entityManager.merge(role);
@@ -49,7 +49,7 @@ public class RoleDAOImpl implements RoleDAO{
         }
     }
 
-    @Transactional
+    
     public Role createRoleIfNotFound(String name, long id) {
         Role role = getRoleByName(name);
         if (role == null) {
@@ -59,4 +59,11 @@ public class RoleDAOImpl implements RoleDAO{
         return role;
     }
 
+    @Override
+    public Set<Role> getByIds(List<String> roles) {
+        List<Role> listRoles = entityManager.createQuery("SELECT r FROM Role r where r.name IN :roles")
+        .setParameter("roles", roles)
+                .getResultList();
+        return new HashSet(listRoles);
+    }
 }

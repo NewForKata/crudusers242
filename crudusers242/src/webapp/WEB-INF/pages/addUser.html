@@ -18,6 +18,19 @@
     <p><label for="email">email</label></p>
     <p><input type="text" id="email" name="email"></p>
 
+    <tr>
+        <th>Role:</th>
+        <td>
+            <label>
+                <select name="role" multiple>
+                    <th:block th:each="role : ${rolelist}">
+                        <option th:value="${role}" th:text="${role}"></option>
+                    </th:block>
+                </select>
+            </label>
+        </td>
+    </tr>
+
     <p>
         <input type="submit" value="Add new user">
     </p>

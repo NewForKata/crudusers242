@@ -3,107 +3,82 @@ package web.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-import web.dao.RoleDAO;
-import web.model.Role;
+
 import web.model.User;
+import web.service.RoleService;
 import web.service.UserService;
 
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 @Controller
-@RequestMapping("/")
+@RequestMapping("/admin")
 public class AdminController {
+
     private final UserService userService;
-    private final RoleDAO roleDAO;
+    private final RoleService roleService;
+    private static final String REDIRECT_TO_ADMIN = "redirect:/admin";
 
     @Autowired
     PasswordEncoder bCryptPasswordEncoder;
 
     @Autowired
-    public AdminController(UserService userService, RoleDAO roleDAO) {
+    public AdminController(UserService userService, RoleService roleService) {
         this.userService = userService;
-        this.roleDAO = roleDAO;
+        this.roleService = roleService;
     }
 
-    @GetMapping("/admin")
+    @GetMapping()
     public ModelAndView allUsers() {
-        List<User> users = userService.allUsers();
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("admin");
-        modelAndView.addObject("usersList", users);
+        modelAndView.addObject("usersList", userService.allUsers());
         return modelAndView;
     }
 
-    @GetMapping(value = "/admin/add")
-    public String addPage() {
-        return "addUser";
+    @GetMapping(value = "/add")
+    public ModelAndView addPage() {
+        ModelAndView modelAndView = new ModelAndView();
+        modelAndView.setViewName("addUser");
+        modelAndView.addObject("rolelist", roleService.getRolesForPage());
+        return modelAndView;
     }
 
-    @PostMapping(value = "/admin/add")
-    public String addUser(@ModelAttribute("user") User user) {
-        userService.save(user);
-        return "redirect:/admin";
+    @PostMapping(value = "/add")
+    public String addUser(@ModelAttribute("user") User user, @RequestParam List<String> role) {
+        userService.save(user, roleService.getByIds(role));
+//        userService.save(user, new HashSet<>(role));
+
+//        Set<Role> roleSet = new HashSet<>();
+//        for (String roleId : role) {
+//            roleSet.add(roleService.getById(Long.valueOf(roleId)));
+//        }
+//        user.setRoles(roleSet);
+        return REDIRECT_TO_ADMIN;
     }
 
-    @GetMapping(value = "/admin/edit/{id}")
+    @GetMapping(value = "/edit/{id}")
     public ModelAndView editPage(@PathVariable("id") long id) {
-        User user = userService.getById(id);
         ModelAndView modelAndView = new ModelAndView();
         modelAndView.setViewName("adminEditUser");
-        modelAndView.addObject("user", user);
-        HashSet<Role> Setroles = new HashSet<>();
-        Role role_admin = roleDAO.createRoleIfNotFound("ADMIN", 1L);
-        Role role_user = roleDAO.createRoleIfNotFound("USER", 2L);
-        Setroles.add(role_admin);
-        Setroles.add(role_user);
-        modelAndView.addObject("rolelist", Setroles);
+        modelAndView.addObject("user", userService.getById(id));
+        modelAndView.addObject("rolelist", roleService.getRolesForPage());
         return modelAndView;
     }
 
-    @PostMapping(value = "/admin/edit")
-    public String editUser(
-            @ModelAttribute("id") Long id,
-            @ModelAttribute("name") String name,
-            @ModelAttribute("password") String password,
-            @ModelAttribute("lastname") String lastname,
-            @ModelAttribute("age") byte age,
-            @ModelAttribute("email") String email,
-            @RequestParam("roles") String[] roles
-    ) {
-        User user = userService.getById(id);
-        user.setName(name);
-        user.setLastname(lastname);
-        user.setAge(age);
-        user.setEmail(email);
-        if (!password.isEmpty()) {
-            user.setPassword(password);
-        }
-        Set<Role> Setroles = new HashSet<>();
-        for (String st : roles) {
-            if (st.equals("ADMIN")) {
-                Role role_admin = roleDAO.createRoleIfNotFound("ADMIN", 1L);
-                Setroles.add(role_admin);
-            }
-            if (st.equals("USER")) {
-                Role role_user = roleDAO.createRoleIfNotFound("USER", 2L);
-                Setroles.add(role_user);
-            }
-        }
-        user.setRoles(Setroles);
-        userService.save(user);
-        return "redirect:/admin";
-    }
+    @PostMapping(value = "/edit")
+    public String editUser(@ModelAttribute User user, @RequestParam List<String> role) {
+         userService.edit(user, role);
+         return REDIRECT_TO_ADMIN;
+     }
 
-    @GetMapping(value = "/admin/delete/{id}")
+
+    @GetMapping(value = "/delete/{id}")
     public String deleteUser(@PathVariable("id") long id) {
-        User user = userService.getById(id);
-        userService.delete(user);
-        return "redirect:/admin";
+        userService.delete(id);
+        return REDIRECT_TO_ADMIN;
     }
 
 
